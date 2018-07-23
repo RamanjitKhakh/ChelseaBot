@@ -7,18 +7,9 @@ const qs = require("querystring");
 const ticket = require("./ticket");
 const reminder = require("./reminder.js");
 const debug = require("debug")("slash-command-template:index");
-const cron = require("node-cron");
 
+const database = require("./database");
 const app = express();
-
-var admin = require("firebase-admin");
-
-var serviceAccount = require("../firebaseKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://chelseabot-f56ce.firebaseio.com"
-});
 
 let lastSuccessfulTimestamp = Date.now();
 
@@ -47,16 +38,8 @@ const TeamsList = [
   }
 ];
 
-cron.schedule("*/10 * * * * *", () => {
-  // check time stamp
-  const currentTime = Date.now();
-  const diff = currentTime - lastSuccessfulTimestamp;
-  const channelFilter = GlobalChannelList.filter(elem => {
-    return elem["name"] === "sales";
-  });
-  reminder.sendReminder(channelFilter[0]);
-});
-
+reminder.generateReminders();
+reminder.deleteTask(1);
 /*
  * Parse application/x-www-form-urlencoded && application/json
  */
@@ -164,20 +147,7 @@ app.post("/chores", (req, res) => {
   if (req.body.token === process.env.SLACK_VERIFICATION_TOKEN) {
     debug(`Form submission received: ${req.body.trigger_id}`);
   }
-
-  const db = admin.database();
-  const ref = db.ref("/chores");
-  // Attach an asynchronous callback to read the data at our posts reference
-  ref.on(
-    "value",
-    snapshot => {
-      console.log(snapshot.val(), "yolo");
-      res.send(snapshot.val());
-    },
-    error => {
-      console.log("The read failed: " + error.code);
-    }
-  );
+  database.getAllTasks(tasks => res.send(tasks));
   // res.send("");
 });
 
