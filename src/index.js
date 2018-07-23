@@ -4,10 +4,31 @@ const axios = require("axios");
 const express = require("express");
 const bodyParser = require("body-parser");
 const qs = require("querystring");
-const ticket = require("./ticket");
-const reminder = require("./reminder.js");
+const Botkit = require("botkit");
 const debug = require("debug")("slash-command-template:index");
 const cron = require("node-cron");
+
+var memory_store = require("./memorystore.js");
+const ticket = require("./ticket");
+const reminder = require("./reminder.js");
+const beerbot = require("./beerbot.js");
+
+// Create the Botkit controller, which controls all instances of the bot.
+var controller = Botkit.slackbot({
+  debug: false,
+  storage: memory_store(),
+  clientId: process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET
+});
+
+// controller.setupWebserver(process.env.WEBHOOK_PORT, function(err, webserver) {
+//   controller.createWebhookEndpoints(controller.webserver);
+//   controller.createOauthEndpoints(controller.webserver);
+// });
+// Set up an Express-powered webserver to expose oauth and webhook endpoints
+require(__dirname + "/components/express_webserver.js")(controller);
+
+controller.startTicking();
 
 const app = express();
 
@@ -38,14 +59,16 @@ const TeamsList = [
   }
 ];
 
-cron.schedule("*/10 * * * * *", () => {
+cron.schedule("*/30 * * * * Monday", () => {
   // check time stamp
   const currentTime = Date.now();
   const diff = currentTime - lastSuccessfulTimestamp;
+  lastSuccessfulTimestamp = Date.now();
   const channelFilter = GlobalChannelList.filter(elem => {
     return elem["name"] === "sales";
   });
-  reminder.sendReminder(channelFilter[0]);
+  //reminder.sendReminder(channelFilter[0]);
+  //beerbot(channelFilter[0]);
 });
 
 /*
@@ -153,18 +176,57 @@ app.listen(process.env.PORT, () => {
   console.log(`App listening on port ${process.env.PORT}!`);
 });
 
-axios
-  .post(
-    "https://slack.com/api/channels.list",
-    qs.stringify({
-      token: process.env.SLACK_ACCESS_TOKEN
-    })
-  )
-  .then(result => {
-    console.log("success");
-    GlobalChannelList = result.data.channels;
-  })
-  .catch(err => {
-    debug("sendConfirmation error: %o", err);
-    console.error(err);
+var spawnIndividualBot = function() {
+  var botStoreConfig = {
+    token: process.env.SLACK_ACCESS_TOKEN,
+    apiToken: process.env.SLACK_VERIFICATION_TOKEN,
+    teamId: "TBW7T6BFZ"
+  };
+  var bot = controller.spawn(botStoreConfig);
+  bot.team_info = {
+    id: botStoreConfig.teamId,
+    apiToken: botStoreConfig.apiToken
+  };
+  //util.saveBot(bot);
+
+  var botkitStorageConfig = {
+    id: botStoreConfig.teamId,
+    apiToken: process.env.SLACK_VERIFICATION_TOKEN,
+    accessToken: process.env.SLACK_ACCESS_TOKEN,
+    bot: {
+      token: process.env.SLACK_ACCESS_TOKEN,
+      user_id: botConfiguration.bot.userId,
+      name: "default"
+    }
+  };
+
+  controller.storage.teams.save(botkitStorageConfig, function(err) {
+    console.log(err);
   });
+};
+
+const main = () => {
+  axios
+    .post(
+      "https://slack.com/api/bots.info",
+      qs.stringify({
+        token: process.env.SLACK_ACCESS_TOKEN
+      })
+    )
+    .then(result => {
+      console.log("success");
+      GlobalChannelList = result.data.channels;
+      console.log(result.data);
+    })
+    .catch(err => {
+      debug("sendConfirmation error: %o", err);
+      console.error(err);
+    });
+  //spawnIndividualBot();
+
+  controller.hears("test", "tesss", () => {
+    console.log("test");
+  });
+};
+
+main();
