@@ -1,21 +1,18 @@
 const axios = require("axios");
 const debug = require("debug")("slash-command-template:ticket");
 const qs = require("querystring");
+const database = require("./database");
+const cron = require("node-cron");
 
-/*
- *  Send ticket creation confirmation via
- *  chat.postMessage to the user who created it
- */
-const sendReminder = channel => {
-  console.log("sending reminder");
+const sendReminder = (channeld, reminderText) => {
   axios
     .post(
-      "https://slack.com/api/chat.postMessage",
-      qs.stringify({
+      "https://hooks.slack.com/services/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",
+      {
         token: process.env.SLACK_ACCESS_TOKEN,
         channel: channeld,
-        text: "Reminder! It is your chore week!"
-      })
+        text: reminderText
+      }
     )
     .then(result => {
       debug("sendConfirmation: %o", result.data);
@@ -26,4 +23,19 @@ const sendReminder = channel => {
     });
 };
 
-module.exports = { sendReminder };
+const generateReminders = () => {
+  database.getAllTasks(tasks => {
+    tasks.forEach(task => {
+      console.log(task);
+      const { cronPattern, description, frequency } = task;
+      const reminderText = `Dear Dev team, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
+
+      cron.schedule(cronPattern, () => {
+        const channelId = "CBVASD22H";
+        sendReminder(channelId, reminderText);
+      });
+    });
+  });
+};
+
+module.exports = { generateReminders };

@@ -6,7 +6,6 @@ const bodyParser = require("body-parser");
 const qs = require("querystring");
 const Botkit = require("botkit");
 const debug = require("debug")("slash-command-template:index");
-const cron = require("node-cron");
 
 var memory_store = require("./memorystore.js");
 const ticket = require("./ticket");
@@ -32,6 +31,7 @@ controller.setupWebserver(process.env.WEBHOOK_PORT, function(err, webserver) {
 
 controller.startTicking();
 
+const database = require("./database");
 const app = express();
 
 let lastSuccessfulTimestamp = Date.now();
@@ -61,18 +61,7 @@ const TeamsList = [
   }
 ];
 
-cron.schedule("*/30 * * * * Monday", () => {
-  // check time stamp
-  const currentTime = Date.now();
-  const diff = currentTime - lastSuccessfulTimestamp;
-  lastSuccessfulTimestamp = Date.now();
-  const channelFilter = GlobalChannelList.filter(elem => {
-    return elem["name"] === "sales";
-  });
-  //reminder.sendReminder(channelFilter[0]);
-  //beerbot(channelFilter[0]);
-});
-
+reminder.generateReminders();
 /*
  * Parse application/x-www-form-urlencoded && application/json
  */
@@ -172,6 +161,16 @@ app.post("/interactive-component", (req, res) => {
     debug("Token mismatch");
     res.sendStatus(500);
   }
+});
+
+app.post("/chores", (req, res) => {
+  console.log(req.body);
+  // check that the verification token matches expected value
+  if (req.body.token === process.env.SLACK_VERIFICATION_TOKEN) {
+    debug(`Form submission received: ${req.body.trigger_id}`);
+  }
+  database.getAllTasks(tasks => res.send(tasks));
+  // res.send("");
 });
 
 app.listen(process.env.PORT, () => {

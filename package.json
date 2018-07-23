@@ -5,7 +5,8 @@
   "description": "Sample Slack app that responds to an Slack slash command with an interactive message",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "DEBUG=slash-command-template node src/index.js"
+    "start": "DEBUG=slash-command-template node src/index.js",
+    "dev": "DEBUG=slash-command-template nodemon src/index.js"
   },
   "author": "Sachin Ranchod <sranchod@slack-corp.com>",
   "engines": {
@@ -24,6 +25,11 @@
     "node-cron": "^1.2.1",
     "request": "^2.87.0",
     "sanitize-filename": "^1.6.1",
-    "sync-request": "^6.0.0"
+    "sync-request": "^6.0.0",
+    "cronstrue": "^1.31.0",
+    "firebase-admin": "^5.13.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.3"
   }
 }
