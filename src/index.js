@@ -5,7 +5,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const qs = require("querystring");
 const ticket = require("./ticket");
+const reminder = require("./reminder.js");
 const debug = require("debug")("slash-command-template:index");
+const cron = require("node-cron");
 
 const app = express();
 
@@ -16,6 +18,43 @@ var serviceAccount = require("../firebaseKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://chelseabot-f56ce.firebaseio.com"
+});
+
+let lastSuccessfulTimestamp = Date.now();
+
+let GlobalChannelList = [];
+
+const TeamsList = [
+  {
+    value: "Sales",
+    name: "sales",
+    group: "@channel"
+  },
+  {
+    value: "Marketing/Product/G&A",
+    name: "marketing",
+    group: "@channel"
+  },
+  {
+    value: "Dev",
+    name: "dev",
+    group: "@channel"
+  },
+  {
+    value: "CS",
+    name: "cs",
+    group: "@channel"
+  }
+];
+
+cron.schedule("*/10 * * * * *", () => {
+  // check time stamp
+  const currentTime = Date.now();
+  const diff = currentTime - lastSuccessfulTimestamp;
+  const channelFilter = GlobalChannelList.filter(elem => {
+    return elem["name"] === "sales";
+  });
+  reminder.sendReminder(channelFilter[0]);
 });
 
 /*
@@ -145,3 +184,19 @@ app.post("/chores", (req, res) => {
 app.listen(process.env.PORT, () => {
   console.log(`App listening on port ${process.env.PORT}!`);
 });
+
+axios
+  .post(
+    "https://slack.com/api/channels.list",
+    qs.stringify({
+      token: process.env.SLACK_ACCESS_TOKEN
+    })
+  )
+  .then(result => {
+    console.log("success");
+    GlobalChannelList = result.data.channels;
+  })
+  .catch(err => {
+    debug("sendConfirmation error: %o", err);
+    console.error(err);
+  });
