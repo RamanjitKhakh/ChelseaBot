@@ -53,7 +53,7 @@ function findBeer(beerName) {
   //console.log(JSON.stringify(json, null, 2));
   return json;
 }
-function parseBeers(body, channel) {
+function parseBeers(body, channel, callback) {
   const $ = cheerio.load(body);
 
   sixtels = $('h2 > strong:contains("1/6 KEGS")');
@@ -151,13 +151,14 @@ function parseBeers(body, channel) {
       "https://slack.com/api/chat.postMessage",
       qs.stringify({
         token: process.env.SLACK_ACCESS_TOKEN,
-        channel: channel.id,
+        channel: channel,
         text: slackMessage.text,
         attachments: JSON.stringify(slackMessage.attachments)
       })
     )
     .then(result => {
       debug("sendConfirmation: %o", result.data);
+      callback();
     })
     .catch(err => {
       debug("sendConfirmation error: %o", err);
@@ -174,7 +175,7 @@ if (!fs.existsSync(searchDir)) {
 if (!fs.existsSync(beerDir)) {
   fs.mkdirSync(beerDir, 0744);
 }
-module.exports = channel => {
+module.exports = (channel, callback) => {
   console.log("running beer");
   var beerResponse = request(
     "GET",
@@ -185,5 +186,5 @@ module.exports = channel => {
       }
     }
   );
-  parseBeers(beerResponse.getBody("utf8"), channel);
+  parseBeers(beerResponse.getBody("utf8"), channel, callback);
 };

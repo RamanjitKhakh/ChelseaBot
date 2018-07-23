@@ -13,20 +13,22 @@ const ticket = require("./ticket");
 const reminder = require("./reminder.js");
 const beerbot = require("./beerbot.js");
 
+const incoming_webhooks = require("./components/routes/incoming_webhooks.js");
+
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.slackbot({
   debug: false,
-  storage: memory_store(),
   clientId: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET
 });
 
-// controller.setupWebserver(process.env.WEBHOOK_PORT, function(err, webserver) {
-//   controller.createWebhookEndpoints(controller.webserver);
-//   controller.createOauthEndpoints(controller.webserver);
-// });
+controller.setupWebserver(process.env.WEBHOOK_PORT, function(err, webserver) {
+  controller.createWebhookEndpoints(controller.webserver);
+  //controller.createOauthEndpoints(controller.webserver);
+  incoming_webhooks(webserver, controller);
+});
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
-require(__dirname + "/components/express_webserver.js")(controller);
+//require(__dirname + "/components/express_webserver.js")(controller);
 
 controller.startTicking();
 
@@ -187,15 +189,14 @@ var spawnIndividualBot = function() {
     id: botStoreConfig.teamId,
     apiToken: botStoreConfig.apiToken
   };
-  //util.saveBot(bot);
 
   var botkitStorageConfig = {
     id: botStoreConfig.teamId,
     apiToken: process.env.SLACK_VERIFICATION_TOKEN,
     accessToken: process.env.SLACK_ACCESS_TOKEN,
     bot: {
-      token: process.env.SLACK_ACCESS_TOKEN,
-      user_id: botConfiguration.bot.userId,
+      token: process.env.SLACK_BOT_TOKEN,
+      user_id: "",
       name: "default"
     }
   };
@@ -208,7 +209,7 @@ var spawnIndividualBot = function() {
 const main = () => {
   axios
     .post(
-      "https://slack.com/api/bots.info",
+      "https://slack.com/api/channels.list",
       qs.stringify({
         token: process.env.SLACK_ACCESS_TOKEN
       })
@@ -216,16 +217,43 @@ const main = () => {
     .then(result => {
       console.log("success");
       GlobalChannelList = result.data.channels;
-      console.log(result.data);
     })
     .catch(err => {
       debug("sendConfirmation error: %o", err);
       console.error(err);
     });
-  //spawnIndividualBot();
+  spawnIndividualBot();
 
-  controller.hears("test", "tesss", () => {
-    console.log("test");
+  controller.hears("order beer", "direct_message", (bot, message) => {
+    beerbot(message.channel, () => {
+      var botkitThreadMessage = {
+        user: message.user,
+        channel: message.channel,
+        team: message.team,
+        ts: message.ts
+      };
+      bot.startConversation(botkitThreadMessage, (err, convo) => {
+        convo.on("end", convo => {
+          if (convo.status === "completed") {
+            const res = convo.extractResponses();
+            const beerResponse = res["beer_response"];
+            if (beerResponse.toLowerCase() === "cancel") {
+              bot.reply(botkitThreadMessage, "Cancelling request");
+              return;
+            }
+            // do something with response.
+            console.log("beer order is " + beerResponse);
+          }
+        });
+        convo.ask(
+          "Please type a list of beer you want",
+          function(response, convo) {
+            convo.next();
+          },
+          { key: "beer_response" }
+        );
+      });
+    });
   });
 };
 

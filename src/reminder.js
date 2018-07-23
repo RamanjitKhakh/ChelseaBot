@@ -13,7 +13,7 @@ const sendReminder = channel => {
       "https://slack.com/api/chat.postMessage",
       qs.stringify({
         token: process.env.SLACK_ACCESS_TOKEN,
-        channel: channel.id,
+        channel: channeld,
         text: "Reminder! It is your chore week!"
       })
     )
