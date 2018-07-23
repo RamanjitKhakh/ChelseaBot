@@ -18,7 +18,6 @@ admin.initializeApp({
   databaseURL: "https://chelseabot-f56ce.firebaseio.com"
 });
 
-console.log(admin);
 /*
  * Parse application/x-www-form-urlencoded && application/json
  */
@@ -118,6 +117,29 @@ app.post("/interactive-component", (req, res) => {
     debug("Token mismatch");
     res.sendStatus(500);
   }
+});
+
+app.post("/chores", (req, res) => {
+  console.log(req.body);
+  // check that the verification token matches expected value
+  if (req.body.token === process.env.SLACK_VERIFICATION_TOKEN) {
+    debug(`Form submission received: ${req.body.trigger_id}`);
+  }
+
+  const db = admin.database();
+  const ref = db.ref("/chores");
+  // Attach an asynchronous callback to read the data at our posts reference
+  ref.on(
+    "value",
+    snapshot => {
+      console.log(snapshot.val(), "yolo");
+      res.send(snapshot.val());
+    },
+    error => {
+      console.log("The read failed: " + error.code);
+    }
+  );
+  // res.send("");
 });
 
 app.listen(process.env.PORT, () => {
