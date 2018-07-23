@@ -9,6 +9,16 @@ const debug = require("debug")("slash-command-template:index");
 
 const app = express();
 
+var admin = require("firebase-admin");
+
+var serviceAccount = require("../firebaseKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://chelseabot-f56ce.firebaseio.com"
+});
+
+console.log(admin);
 /*
  * Parse application/x-www-form-urlencoded && application/json
  */
