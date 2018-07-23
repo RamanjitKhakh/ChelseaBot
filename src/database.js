@@ -9,6 +9,28 @@ admin.initializeApp({
 
 const db = admin.database();
 
+// Beer
+
+const addBeer = (response, user) => {
+  const ref = db.ref("/beers");
+
+  const newPostKey = ref.push().key;
+  const responsePayload = {
+    id: newPostKey,
+    response,
+    user
+  };
+  const updates = {};
+  updates["/beers/" + newPostKey] = responsePayload;
+  return db.ref().update(updates);
+};
+
+const clearAllBeers = () => {
+  const ref = db.ref("/beers");
+  return ref.remove();
+};
+
+// task CRUD
 const getAllTasks = (successCallback, errorCallback) => {
   const ref = db.ref("/tasks");
   ref.on(
@@ -50,5 +72,6 @@ module.exports = {
   deleteTask,
   updateTask,
   getAllTasks,
-  getTask
+  addBeer,
+  clearAllBeers
 };

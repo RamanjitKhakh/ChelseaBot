@@ -237,15 +237,15 @@ const main = () => {
             const res = convo.extractResponses();
             const beerResponse = res["beer_response"];
             if (beerResponse.toLowerCase() === "cancel") {
-              bot.reply(botkitThreadMessage, "Cancelling request");
+              bot.reply(convo.source_message, "Cancelling action...");
               return;
             }
-            // do something with response.
-            console.log("beer order is " + beerResponse);
+            bot.reply(convo.source_message, "Your response has been added");
+            database.addBeer(beerResponse, message.user);
           }
         });
         convo.ask(
-          "Please type a list of beer you want",
+          "Please type a list of beer you want. (type `cancel` to cancel this prompt)",
           function(response, convo) {
             convo.next();
           },
