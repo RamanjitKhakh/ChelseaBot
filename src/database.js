@@ -30,6 +30,20 @@ const clearAllBeers = () => {
   return ref.remove();
 };
 
+const getAllBeers = (successCallback, errorCallback) => {
+  const ref = db.ref("/beers");
+  ref.once(
+    "value",
+    snapshot => {
+      const beers = Object.values(snapshot.val());
+      successCallback(beers);
+    },
+    error => {
+      errorCallback(error.code);
+    }
+  );
+};
+
 // task CRUD
 const getAllTasks = (successCallback, errorCallback) => {
   const ref = db.ref("/tasks");
@@ -121,5 +135,6 @@ module.exports = {
   getAllTeams,
   addTeam,
   getCurrentChoreTeam,
-  updateTeams
+  updateTeams,
+  getAllBeers
 };

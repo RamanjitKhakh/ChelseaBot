@@ -162,11 +162,26 @@ app.post("/commands", (req, res) => {
  * and creates a Helpdesk ticket
  */
 app.post("/interactive-component", (req, res) => {
-  console.log("interactive componenet wtf ");
   const body = JSON.parse(req.body.payload);
 
-  // check that the verification token matches expected value
-  if (body.token === process.env.SLACK_VERIFICATION_TOKEN) {
+  console.log("in interactive component");
+  if (body.type === "interactive_message") {
+    const selected = body.original_message.attachments[body.attachment_id - 1];
+    database.deleteTask(selected.callback_id);
+    body.original_message.attachments.splice(body.attachment_id - 1, 1);
+    axios
+      .post(body.response_url, {
+        attachments: body.original_message.attachments
+      })
+      .then(result => {
+        debug("sendConfirmation: %o", result.data);
+      })
+      .catch(err => {
+        debug("sendConfirmation error: %o", err);
+        console.error(err);
+      });
+    res.send("");
+  } else if (body.token === process.env.SLACK_VERIFICATION_TOKEN) {
     debug(`Form submission received: ${body.submission.trigger_id}`);
 
     // immediately respond with a empty 200 response to let
@@ -250,8 +265,39 @@ const main = () => {
     };
     bot.reply(
       botkitThreadMessage,
-      "Here is a list of commands\n `order beer` - view the current listing and submit beers to order\n `view tasks` - to view all task for this week."
+      "Here is a list of commands\n `order beer` - view the current listing and submit beers to order\n `view tasks` - to view all task for this week.\n `view beers` - to view all beers that have been requested"
     );
+  });
+
+  controller.hears("^view beers", "direct_message", (bot, message) => {
+    database.getAllBeers(beers => {
+      const attachments = beers.map(elem => {
+        return {
+          title: elem.response
+        };
+      });
+
+      attachments.push({
+        title: "Orders can be placed at 215-627-6465"
+      });
+
+      axios
+        .post(
+          "https://slack.com/api/chat.postMessage",
+          qs.stringify({
+            token: process.env.SLACK_ACCESS_TOKEN,
+            channel: message.channel,
+            attachments: JSON.stringify(attachments)
+          })
+        )
+        .then(result => {
+          debug("sendConfirmation: %o", result.data);
+        })
+        .catch(err => {
+          debug("sendConfirmation error: %o", err);
+          console.error(err);
+        });
+    });
   });
 
   controller.hears("^view task", "direct_message", (bot, message) => {
@@ -266,7 +312,17 @@ const main = () => {
         return {
           title: elem.category,
           text: elem.description,
-          footer: elem.frequency
+          footer: elem.frequency,
+          callback_id: elem.id,
+          actions: [
+            {
+              name: "delete",
+              type: "button",
+              text: "delete",
+              value: "delete",
+              style: "danger"
+            }
+          ]
         };
       });
 
