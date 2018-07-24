@@ -92,12 +92,12 @@ app.post("/commands", (req, res) => {
       token: process.env.SLACK_ACCESS_TOKEN,
       trigger_id,
       dialog: JSON.stringify({
-        title: "Submit a helpdesk ticket",
+        title: "Submit a new chore!",
         callback_id: "submit-ticket",
         submit_label: "Submit",
         elements: [
           {
-            label: "Title",
+            label: "Task Name",
             type: "text",
             name: "title",
             value: text,
@@ -110,13 +110,30 @@ app.post("/commands", (req, res) => {
             optional: true
           },
           {
-            label: "Urgency",
+            label: "When to remind them?",
             type: "select",
-            name: "urgency",
-            options: [
-              { label: "Low", value: "Low" },
-              { label: "Medium", value: "Medium" },
-              { label: "High", value: "High" }
+            name: "time_interval",
+            option_groups: [
+              {
+                label: "Hours",
+                options: [
+                  { label: "1", value: "1h" },
+                  { label: "2", value: "2h" },
+                  { label: "5", value: "5h" },
+                  { label: "8", value: "8h" },
+                  { label: "12", value: "12h" }
+                ]
+              },
+              {
+                label: "Days",
+                options: [
+                  { label: "1", value: "1d" },
+                  { label: "2", value: "2d" },
+                  { label: "3", value: "3d" },
+                  { label: "4", value: "4d" },
+                  { label: "5", value: "5d" }
+                ]
+              }
             ]
           }
         ]
@@ -145,6 +162,7 @@ app.post("/commands", (req, res) => {
  * and creates a Helpdesk ticket
  */
 app.post("/interactive-component", (req, res) => {
+  console.log("interactive componenet wtf ");
   const body = JSON.parse(req.body.payload);
 
   // check that the verification token matches expected value
