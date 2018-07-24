@@ -168,6 +168,18 @@ app.post("/interactive-component", (req, res) => {
   if (body.type === "interactive_message") {
     const selected = body.original_message.attachments[body.attachment_id - 1];
     database.deleteTask(selected.callback_id);
+    body.original_message.attachments.splice(body.attachment_id - 1, 1);
+    axios
+      .post(body.response_url, {
+        attachments: body.original_message.attachments
+      })
+      .then(result => {
+        debug("sendConfirmation: %o", result.data);
+      })
+      .catch(err => {
+        debug("sendConfirmation error: %o", err);
+        console.error(err);
+      });
     res.send("");
   } else if (body.token === process.env.SLACK_VERIFICATION_TOKEN) {
     debug(`Form submission received: ${body.submission.trigger_id}`);
