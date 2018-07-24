@@ -30,6 +30,20 @@ const clearAllBeers = () => {
   return ref.remove();
 };
 
+const getAllBeers = (successCallback, errorCallback) => {
+  const ref = db.ref("/beers");
+  ref.once(
+    "value",
+    snapshot => {
+      const tasks = Object.values(snapshot.val());
+      successCallback(tasks);
+    },
+    error => {
+      errorCallback(error.code);
+    }
+  );
+};
+
 // task CRUD
 const getAllTasks = (successCallback, errorCallback) => {
   const ref = db.ref("/tasks");
@@ -59,6 +73,8 @@ const addTask = task => {
 };
 
 const deleteTask = taskId => {
+  console.log("in delete task");
+  console.log(taskId);
   if (taskId) {
     const ref = db.ref("/tasks");
     return ref.remove(taskId);

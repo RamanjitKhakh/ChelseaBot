@@ -162,11 +162,14 @@ app.post("/commands", (req, res) => {
  * and creates a Helpdesk ticket
  */
 app.post("/interactive-component", (req, res) => {
-  console.log("interactive componenet wtf ");
   const body = JSON.parse(req.body.payload);
 
-  // check that the verification token matches expected value
-  if (body.token === process.env.SLACK_VERIFICATION_TOKEN) {
+  console.log("in interactive component");
+  if (body.type === "interactive_message") {
+    const selected = body.original_message.attachments[body.attachment_id - 1];
+    database.deleteTask(selected.callback_id);
+    res.send("");
+  } else if (body.token === process.env.SLACK_VERIFICATION_TOKEN) {
     debug(`Form submission received: ${body.submission.trigger_id}`);
 
     // immediately respond with a empty 200 response to let
@@ -266,7 +269,17 @@ const main = () => {
         return {
           title: elem.category,
           text: elem.description,
-          footer: elem.frequency
+          footer: elem.frequency,
+          callback_id: elem.id,
+          actions: [
+            {
+              name: "delete",
+              type: "button",
+              text: "delete",
+              value: "delete",
+              style: "danger"
+            }
+          ]
         };
       });
 
