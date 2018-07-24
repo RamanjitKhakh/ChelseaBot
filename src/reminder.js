@@ -9,11 +9,16 @@ const createReminderFromTask = task => {
   const { cronPattern, description, frequency } = task;
 
   cron.schedule(cronPattern, () => {
-    database.getCurrentChoreTeam(team => {
-      const { channelId, name } = team;
-      const reminderText = `Dear ${name} team, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
-      slack.postMessageToChannel(channelId, reminderText);
-    });
+    if (task.notify === "all") {
+      const reminderText = `Everyone!, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
+      slack.postMessageToAll(reminderText);
+    } else if (task.notify === "choreTeam") {
+      database.getCurrentChoreTeam(team => {
+        const { channelId, name } = team;
+        const reminderText = `Dear ${name} team, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
+        slack.postMessageToChannel(channelId, reminderText);
+      });
+    }
   });
 };
 
