@@ -1,7 +1,7 @@
 const database = require("./database");
 const cron = require("node-cron");
 
-const cronPatternForSundayAtNoon = "0 12 * * 0";
+const CRON_PATTERN_FOR_SUNDAY = "0 12 * * 0";
 
 const changeChoreTeam = () => {
   database.getAllTeams(teams => {
@@ -23,7 +23,7 @@ const createScheduledJob = (cronPattern, actionFunc) => {
 };
 
 const generateDefaultScheduleJobs = () => {
-  cron.schedule(cronPatternForSundayAtNoon, () => {
+  cron.schedule(CRON_PATTERN_FOR_SUNDAY, () => {
     changeChoreTeam();
   });
 };

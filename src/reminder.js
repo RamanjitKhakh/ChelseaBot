@@ -12,16 +12,18 @@ const createReminderFromTask = task => {
     database.getCurrentChoreTeam(team => {
       const { channelId, name } = team;
       const reminderText = `Dear ${name} team, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
-      slack.postMessage(channelId, reminderText);
+      slack.postMessageToChannel(channelId, reminderText);
     });
   });
 };
 
 const generateRemindersFromTasks = () => {
   database.getAllTasks(tasks => {
-    tasks.forEach(task => {
-      createReminderFromTask(task);
-    });
+    if (tasks) {
+      tasks.forEach(task => {
+        createReminderFromTask(task);
+      });
+    }
   });
 };
 
