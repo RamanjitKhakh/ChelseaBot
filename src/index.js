@@ -11,7 +11,7 @@ var memory_store = require("./memorystore.js");
 const ticket = require("./ticket");
 const reminder = require("./reminder.js");
 const beerbot = require("./beerbot.js");
-
+const scheduleJob = require("./scheduleJob");
 const incoming_webhooks = require("./components/routes/incoming_webhooks.js");
 
 // Create the Botkit controller, which controls all instances of the bot.
@@ -61,7 +61,8 @@ const TeamsList = [
   }
 ];
 
-reminder.generateReminders();
+scheduleJob.generateDefaultScheduleJobs();
+reminder.generateRemindersFromTasks();
 /*
  * Parse application/x-www-form-urlencoded && application/json
  */

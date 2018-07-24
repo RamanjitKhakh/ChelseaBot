@@ -11,7 +11,7 @@ const db = admin.database();
 
 const getAllTasks = (successCallback, errorCallback) => {
   const ref = db.ref("/tasks");
-  ref.on(
+  ref.once(
     "value",
     snapshot => {
       const tasks = Object.values(snapshot.val());
@@ -25,9 +25,12 @@ const getAllTasks = (successCallback, errorCallback) => {
 
 const addTask = task => {
   const ref = db.ref("/tasks");
-  task.frequency = cronstrue.toString(task.cronPattern);
+  if (!task.frequency) {
+    task.frequency = cronstrue.toString(task.cronPattern);
+  }
 
   const newPostKey = ref.push().key;
+  task.id = newPostKey;
   const updates = {};
   updates["/tasks/" + newPostKey] = task;
   return db.ref().update(updates);
@@ -45,10 +48,52 @@ const updateTask = (taskId, task) => {
   return db.ref().update(updates);
 };
 
+const getAllTeams = (successCallback, errorCallback) => {
+  const ref = db.ref("/teams");
+  ref.once(
+    "value",
+    snapshot => {
+      const teams = Object.values(snapshot.val()).sort((a, b) => {
+        return a.index - b.index;
+      });
+      successCallback(teams);
+    },
+    error => {
+      errorCallback(error.code);
+    }
+  );
+};
+
+const getCurrentChoreTeam = (successCallback, errorCallback) => {
+  getAllTeams(teams => {
+    const currentChoreTeam = teams.find(team => team.isChoreWeek);
+    successCallback(currentChoreTeam);
+  }, errorCallback);
+};
+
+const updateTeams = teams => {
+  const updates = {};
+  updates["/teams"] = teams;
+  return db.ref().update(updates);
+};
+
+const addTeam = team => {
+  getAllTeams(teams => {
+    team.index = teams.length;
+    const newTeamKey = ref.push().key;
+    const updates = {};
+    updates["/teams/" + newTeamKey] = team;
+    return db.ref().update(updates);
+  });
+};
+
 module.exports = {
   addTask,
   deleteTask,
   updateTask,
   getAllTasks,
-  getTask
+  getAllTeams,
+  addTeam,
+  getCurrentChoreTeam,
+  updateTeams
 };
