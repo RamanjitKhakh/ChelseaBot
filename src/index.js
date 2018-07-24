@@ -249,8 +249,43 @@ const main = () => {
     };
     bot.reply(
       botkitThreadMessage,
-      "Here is a list of commands\n `order beer` - view the current listing and submit beers to order\n `view task` to view all task for this week."
+      "Here is a list of commands\n `order beer` - view the current listing and submit beers to order\n `view tasks` - to view all task for this week."
     );
+  });
+
+  controller.hears("^view task", "direct_message", (bot, message) => {
+    const botkitThreadMessage = {
+      user: message.user,
+      channel: message.channel,
+      team: message.team,
+      ts: message.ts
+    };
+    database.getAllTasks(tasks => {
+      const renderTasksAttachments = tasks.map(elem => {
+        return {
+          title: elem.category,
+          text: elem.description,
+          footer: elem.frequency
+        };
+      });
+
+      axios
+        .post(
+          "https://slack.com/api/chat.postMessage",
+          qs.stringify({
+            token: process.env.SLACK_ACCESS_TOKEN,
+            channel: message.channel,
+            attachments: JSON.stringify(renderTasksAttachments)
+          })
+        )
+        .then(result => {
+          debug("sendConfirmation: %o", result.data);
+        })
+        .catch(err => {
+          debug("sendConfirmation error: %o", err);
+          console.error(err);
+        });
+    });
   });
 
   controller.hears("^order beer", "direct_message", (bot, message) => {
