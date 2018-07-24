@@ -60,8 +60,8 @@ const addTask = task => {
 
 const deleteTask = taskId => {
   if (taskId) {
-    const ref = db.ref("/tasks");
-    return ref.remove(taskId);
+    const ref = db.ref(`/tasks/${taskId}`);
+    return ref.remove();
   }
 };
 
