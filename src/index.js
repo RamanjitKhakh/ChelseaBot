@@ -98,17 +98,16 @@ app.post("/commands", (req, res) => {
         submit_label: "Submit",
         elements: [
           {
-            label: "Task Name",
+            label: "Task Category",
             type: "text",
             name: "title",
             value: text,
             hint: "30 second summary of the problem"
           },
           {
-            label: "Description",
+            label: "Description of Task",
             type: "textarea",
-            name: "description",
-            optional: true
+            name: "description"
           },
           {
             label: "How often?",
@@ -277,6 +276,19 @@ const main = () => {
       botkitThreadMessage,
       "Here is a list of commands\n `order beer` - view the current listing and submit beers to order\n `view tasks` - to view all task for this week.\n `view beers` - to view all beers that have been requested"
     );
+  });
+
+  controller.hears("^clear beers", "direct_message", (bot, message) => {
+    const botkitThreadMessage = {
+      user: message.user,
+      channel: message.channel,
+      team: message.team,
+      ts: message.ts
+    };
+    database.clearAllBeers();
+    bot.startConversation(botkitThreadMessage, (err, convo) => {
+      convo.say("deleted all beer entries...");
+    });
   });
 
   controller.hears("^view beers", "direct_message", (bot, message) => {

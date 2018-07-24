@@ -27,8 +27,10 @@ const addBeer = (response, user) => {
 };
 
 const clearAllBeers = () => {
-  const ref = db.ref("/beers");
-  return ref.remove();
+  const ref = db.ref("/beers/");
+  ref.remove(() => {
+    addBeer("There seems to be nothing here", "1");
+  });
 };
 
 const getAllBeers = (successCallback, errorCallback) => {
@@ -36,7 +38,9 @@ const getAllBeers = (successCallback, errorCallback) => {
   ref.once(
     "value",
     snapshot => {
-      const beers = Object.values(snapshot.val());
+      const beers = Object.values(snapshot.val()).filter(
+        (beer, index, array) => beer.user !== "1" || array.length === 1
+      );
       successCallback(beers);
     },
     error => {
