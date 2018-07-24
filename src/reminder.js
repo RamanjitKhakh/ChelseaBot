@@ -32,7 +32,6 @@ const killAllTasks = () => {
 };
 
 const generateRemindersFromTasks = () => {
-  console.log("generatereminderfromtask");
   killAllTasks();
   database.getAllTasks(tasks => {
     if (tasks) {

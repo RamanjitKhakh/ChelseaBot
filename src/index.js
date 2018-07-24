@@ -125,8 +125,12 @@ app.post("/commands", (req, res) => {
             name: "time_interval",
             option_groups: [
               {
-                label: "Minutes",
-                options: [{ label: "every 30 seconds", value: "30s" }]
+                label: "Seconds",
+                options: [
+                  { label: "every 5 seconds", value: "5s" },
+                  { label: "every 10 seconds", value: "10s" },
+                  { label: "every 30 seconds", value: "30s" }
+                ]
               },
               {
                 label: "Days",
