@@ -76,8 +76,8 @@ const deleteTask = taskId => {
   console.log("in delete task");
   console.log(taskId);
   if (taskId) {
-    const ref = db.ref("/tasks");
-    return ref.remove(taskId);
+    const ref = db.ref(`/tasks/${taskId}`);
+    return ref.remove();
   }
 };
 
