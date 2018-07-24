@@ -110,28 +110,27 @@ app.post("/commands", (req, res) => {
             optional: true
           },
           {
+            label: "How often?",
+            type: "select",
+            name: "expire",
+            options: [
+              { label: "Every Week", value: "false" },
+              { label: "Only once", value: "true" }
+            ]
+          },
+          {
             label: "When to remind them?",
             type: "select",
             name: "time_interval",
             option_groups: [
               {
-                label: "Hours",
-                options: [
-                  { label: "1", value: "1h" },
-                  { label: "2", value: "2h" },
-                  { label: "5", value: "5h" },
-                  { label: "8", value: "8h" },
-                  { label: "12", value: "12h" }
-                ]
-              },
-              {
                 label: "Days",
                 options: [
-                  { label: "1", value: "1d" },
-                  { label: "2", value: "2d" },
-                  { label: "3", value: "3d" },
-                  { label: "4", value: "4d" },
-                  { label: "5", value: "5d" }
+                  { label: "Every day", value: "1d" },
+                  { label: "Every 2 days", value: "2d" },
+                  { label: "Every 3 days", value: "3d" },
+                  { label: "Every 4 days", value: "4d" },
+                  { label: "Every 5 days", value: "5d" }
                 ]
               }
             ]

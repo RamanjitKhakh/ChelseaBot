@@ -47,10 +47,11 @@ const sendConfirmation = ticket => {
     .then(result => {
       console.log("ticket is");
       console.log(ticket);
+      const expire = ticket.expire;
       const interval = ticket["time_interval"];
       const cronOffset = interval.split("").pop() === "d" ? 2 : 1;
       let cronString =
-        interval.split("").pop() === "d" ? "0 0 * * *" : "0 * * * *";
+        interval.split("").pop() === "d" ? "0 9 * * *" : "0 * * * *";
       const intervalValue = interval.substring(0, interval.length - 1);
       cronString = cronString.split(" ");
       cronString[cronOffset] = cronString[cronOffset] + "/" + intervalValue;
@@ -58,7 +59,8 @@ const sendConfirmation = ticket => {
       const task = {
         category: ticket.title,
         description: ticket.description,
-        cronPattern: cronString
+        cronPattern: cronString,
+        shouldExpire: expire === "true"
       };
       database.addTask(task);
       debug("sendConfirmation: %o", result.data);
@@ -92,6 +94,7 @@ const create = (userId, submission) => {
       ticket.title = submission.title;
       ticket.description = submission.description;
       ticket["time_interval"] = submission["time_interval"];
+      ticket.expire = submission.expire;
       sendConfirmation(ticket);
 
       return ticket;
