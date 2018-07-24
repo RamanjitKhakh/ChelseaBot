@@ -126,7 +126,7 @@ app.post("/commands", (req, res) => {
             option_groups: [
               {
                 label: "Minutes",
-                options: [{ label: "every minute", value: "1m" }]
+                options: [{ label: "every 30 seconds", value: "30s" }]
               },
               {
                 label: "Days",
@@ -304,6 +304,30 @@ const main = () => {
           console.error(err);
         });
     });
+  });
+
+  controller.hears("^unacceptable", "direct_message", (bot, message) => {
+    const generalChannel = GlobalChannelList.filter(elem => {
+      return elem.name === "general";
+    });
+
+    axios
+      .post(
+        "https://slack.com/api/chat.postMessage",
+        qs.stringify({
+          token: process.env.SLACK_ACCESS_TOKEN,
+          channel: generalChannel[0].id,
+          text: "https://www.youtube.com/watch?v=T2DTsS7cmMw"
+        })
+      )
+      .then(result => {
+        console.log(result.data);
+        debug("sendConfirmation: %o", result.data);
+      })
+      .catch(err => {
+        debug("sendConfirmation error: %o", err);
+        console.error(err);
+      });
   });
 
   controller.hears("^view task", "direct_message", (bot, message) => {

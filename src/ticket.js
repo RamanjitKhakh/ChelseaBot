@@ -48,9 +48,9 @@ const sendConfirmation = ticket => {
     .then(result => {
       const expire = ticket.expire;
       const interval = ticket["time_interval"];
-      const cronOffset = interval.split("").pop() === "d" ? 2 : 0;
+      const cronOffset = interval.split("").pop() === "d" ? 3 : 0;
       let cronString =
-        interval.split("").pop() === "d" ? "0 9 * * *" : "* * * * *";
+        interval.split("").pop() === "d" ? "0 0 9 * * *" : "* * * * * *";
       const intervalValue = interval.substring(0, interval.length - 1);
       cronString = cronString.split(" ");
       cronString[cronOffset] = cronString[cronOffset] + "/" + intervalValue;
