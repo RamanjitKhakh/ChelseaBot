@@ -35,8 +35,8 @@ const getAllBeers = (successCallback, errorCallback) => {
   ref.once(
     "value",
     snapshot => {
-      const tasks = Object.values(snapshot.val());
-      successCallback(tasks);
+      const beers = Object.values(snapshot.val());
+      successCallback(beers);
     },
     error => {
       errorCallback(error.code);
@@ -135,5 +135,6 @@ module.exports = {
   getAllTeams,
   addTeam,
   getCurrentChoreTeam,
-  updateTeams
+  updateTeams,
+  getAllBeers
 };
