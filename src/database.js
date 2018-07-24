@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const cronstrue = require("cronstrue");
 const serviceAccount = require("../firebaseKey.json");
+//const reminder = require("./reminder");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -59,7 +60,7 @@ const getAllTasks = (successCallback, errorCallback) => {
   );
 };
 
-const addTask = task => {
+const addTask = (task, successCallback) => {
   const ref = db.ref("/tasks");
   if (!task.frequency) {
     task.frequency = cronstrue.toString(task.cronPattern);
@@ -69,13 +70,13 @@ const addTask = task => {
   task.id = newPostKey;
   const updates = {};
   updates["/tasks/" + newPostKey] = task;
-  return db.ref().update(updates);
+  db.ref().update(updates, successCallback);
 };
 
-const deleteTask = taskId => {
+const deleteTask = (taskId, successCallback) => {
   if (taskId) {
     const ref = db.ref(`/tasks/${taskId}`);
-    return ref.remove();
+    ref.remove(successCallback);
   }
 };
 

@@ -125,6 +125,10 @@ app.post("/commands", (req, res) => {
             name: "time_interval",
             option_groups: [
               {
+                label: "Minutes",
+                options: [{ label: "every minute", value: "1m" }]
+              },
+              {
                 label: "Days",
                 options: [
                   { label: "Every day", value: "1d" },
@@ -167,7 +171,9 @@ app.post("/interactive-component", (req, res) => {
   console.log("in interactive component");
   if (body.type === "interactive_message") {
     const selected = body.original_message.attachments[body.attachment_id - 1];
-    database.deleteTask(selected.callback_id);
+    database.deleteTask(selected.callback_id, () => {
+      reminder.generateRemindersFromTasks();
+    });
     body.original_message.attachments.splice(body.attachment_id - 1, 1);
     axios
       .post(body.response_url, {

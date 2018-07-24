@@ -3,6 +3,7 @@ const debug = require("debug")("slash-command-template:ticket");
 const qs = require("querystring");
 const users = require("./users");
 const database = require("./database");
+const reminder = require("./reminder");
 
 /*
  *  Send ticket creation confirmation via
@@ -45,13 +46,11 @@ const sendConfirmation = ticket => {
       })
     )
     .then(result => {
-      console.log("ticket is");
-      console.log(ticket);
       const expire = ticket.expire;
       const interval = ticket["time_interval"];
-      const cronOffset = interval.split("").pop() === "d" ? 2 : 1;
+      const cronOffset = interval.split("").pop() === "d" ? 2 : 0;
       let cronString =
-        interval.split("").pop() === "d" ? "0 9 * * *" : "0 * * * *";
+        interval.split("").pop() === "d" ? "0 9 * * *" : "* * * * *";
       const intervalValue = interval.substring(0, interval.length - 1);
       cronString = cronString.split(" ");
       cronString[cronOffset] = cronString[cronOffset] + "/" + intervalValue;
@@ -62,7 +61,10 @@ const sendConfirmation = ticket => {
         cronPattern: cronString,
         shouldExpire: expire === "true"
       };
-      database.addTask(task);
+      database.addTask(task, () => {
+        reminder.generateRemindersFromTasks();
+      });
+
       debug("sendConfirmation: %o", result.data);
     })
     .catch(err => {

@@ -5,14 +5,16 @@ const cron = require("node-cron");
 
 const slack = require("./slackApi");
 
+let cronJobs = [];
+
 const createReminderFromTask = task => {
   const { cronPattern, description, frequency } = task;
 
-  cron.schedule(cronPattern, () => {
+  const taskCron = cron.schedule(cronPattern, () => {
     if (task.notify === "all") {
       const reminderText = `Everyone!, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
       slack.postMessageToAll(reminderText);
-    } else if (task.notify === "choreTeam") {
+    } else {
       database.getCurrentChoreTeam(team => {
         const { channelId, name } = team;
         const reminderText = `Dear ${name} team, this is a friendly reminder to:\n*${description}*\nTo be done:\n*${frequency}*`;
@@ -20,9 +22,18 @@ const createReminderFromTask = task => {
       });
     }
   });
+
+  cronJobs.push(taskCron);
+};
+
+const killAllTasks = () => {
+  cronJobs.forEach(job => job.destroy());
+  cronJobs = [];
 };
 
 const generateRemindersFromTasks = () => {
+  console.log("generatereminderfromtask");
+  killAllTasks();
   database.getAllTasks(tasks => {
     if (tasks) {
       tasks.forEach(task => {

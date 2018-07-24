@@ -5,7 +5,7 @@ const users = require("./users");
 
 const GENERAL_OFFICE_CHANNEL_ID = "CBVASD22H";
 
-const postMessageToChanel = (channelId, text) => {
+const postMessageToChannel = (channelId, text) => {
   axios
     .post(
       "https://slack.com/api/chat.postMessage",
@@ -45,5 +45,5 @@ const postMessageToAll = text => {
 
 module.exports = {
   postMessageToAll,
-  postMessageToChanel
+  postMessageToChannel
 };
