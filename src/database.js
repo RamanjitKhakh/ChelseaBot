@@ -73,8 +73,6 @@ const addTask = task => {
 };
 
 const deleteTask = taskId => {
-  console.log("in delete task");
-  console.log(taskId);
   if (taskId) {
     const ref = db.ref(`/tasks/${taskId}`);
     return ref.remove();
