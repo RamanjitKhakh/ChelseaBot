@@ -240,9 +240,22 @@ const main = () => {
     });
   spawnIndividualBot();
 
-  controller.hears("order beer", "direct_message", (bot, message) => {
+  controller.hears("^help", "direct_message", (bot, message) => {
+    const botkitThreadMessage = {
+      user: message.user,
+      channel: message.channel,
+      team: message.team,
+      ts: message.ts
+    };
+    bot.reply(
+      botkitThreadMessage,
+      "Here is a list of commands\n `order beer` - view the current listing and submit beers to order\n `view task` to view all task for this week."
+    );
+  });
+
+  controller.hears("^order beer", "direct_message", (bot, message) => {
     beerbot(message.channel, () => {
-      var botkitThreadMessage = {
+      const botkitThreadMessage = {
         user: message.user,
         channel: message.channel,
         team: message.team,
